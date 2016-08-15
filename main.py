@@ -74,15 +74,11 @@ def printDotGraph(graph, idToObject):
 
 def printJsonGraph(graph, idToObject):
   typeToGroup = {}
-  def getGroup(id):
-    idType = type(idToObject[id])
-    return typeToGroup.setdefault(idType, len(typeToGroup))
-
   import json
   print(json.dumps({
     'nodes': [{
         'id': id,
-        'group': getGroup(id),
+        'group': typeToGroup.setdefault(type(idToObject[id]), len(typeToGroup)),
         'name': objectName(idToObject[id]),
       } for id in idToObject],
     'links': [{
