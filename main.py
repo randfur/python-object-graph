@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import sys
+
 # Recursively following the attributes of these types results in infinite recursion.
 dontFollowTypes = set([
   type(None.__init__),
@@ -63,5 +65,9 @@ def printGraph(graph, idToName):
     print()
   print('}')
 
-graph, idToName = graphObjectAttributes(None)
-printGraph(graph, idToName)
+if __name__ == '__main__':
+  root = None
+  if len(sys.argv) > 1:
+    root = eval(sys.argv[1])
+  graph, idToName = graphObjectAttributes(root)
+  printGraph(graph, idToName)
