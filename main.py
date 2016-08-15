@@ -14,9 +14,12 @@ def getAttribute(obj, attribute):
     # objects that don't have __getattribute__.
     value = None.__class__.__getattribute__(obj, attribute)
   except AttributeError as error:
-    # For some reason __abstractmethods__ is listed in dir(type) but can't be accessed.
+    # For some reason there are listed attributes that can't be accessed.
     if obj == type and attribute == '__abstractmethods__':
       return None, error
+    if obj == bool:
+      return None, error
+    print(repr(obj), attribute)
     raise
   return value, None
 
@@ -35,13 +38,13 @@ def objectName(obj):
 def graphObjectAttributes(rootObject):
   unprocessed = [rootObject]
   nameToId = {}
-  idToName = {}
+  idToObject = {}
   def getId(obj):
     name = objectName(obj)
     if name not in nameToId:
       id = len(nameToId)
       nameToId[name] = id
-      idToName[id] = name
+      idToObject[id] = obj
     return nameToId[name]
   graph = {}
   while unprocessed:
@@ -56,21 +59,35 @@ def graphObjectAttributes(rootObject):
       edges[attribute] = nextId
       if type(nextObj) not in dontFollowTypes and nextId not in graph:
         unprocessed.append(nextObj)
-  return graph, idToName
+  return graph, idToObject
 
-def printGraph(graph, idToName):
+def printDotGraph(graph, idToObject):
   print('digraph {')
   for id in graph:
-    name = idToName[id]
+    name = objectName(idToObject[id])
     print('  %s [label=%s];' % (id, doubleQuote(name)))
     for attribute, nextId in graph[id].items():
       print('  %s -> %s [label=%s];' % (id, nextId, doubleQuote(attribute)))
     print()
   print('}')
 
+def printJsonGraph(graph, idToObject):
+  print('{')
+  print('  "nodes": {')
+  for id in graph:
+    group = str(type(idToObject[id]))
+    print('    "id": %s, "group": %s},' % (id, doubleQuote(group)))
+  print('  }')
+  print('  "links": {')
+  for id in graph:
+    for attribute, nextId in graph[id].items():
+      print('    "source": %s, "target": %s},' % (id, nextId))
+  print('  }')
+  print('}')
+
 if __name__ == '__main__':
   root = None
   if len(sys.argv) > 1:
     root = eval(sys.argv[1])
-  graph, idToName = graphObjectAttributes(root)
-  printGraph(graph, idToName)
+  graph, idToObject = graphObjectAttributes(root)
+  printJsonGraph(graph, idToObject)
