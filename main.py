@@ -63,27 +63,33 @@ def graphObjectAttributes(rootObject):
 
 def printDotGraph(graph, idToObject):
   print('digraph {')
+  for id in idToObject:
+    print('  %s [label=%s];' % (id, doubleQuote(name)))
   for id in graph:
     name = objectName(idToObject[id])
-    print('  %s [label=%s];' % (id, doubleQuote(name)))
     for attribute, nextId in graph[id].items():
       print('  %s -> %s [label=%s];' % (id, nextId, doubleQuote(attribute)))
     print()
   print('}')
 
 def printJsonGraph(graph, idToObject):
-  print('{')
-  print('  "nodes": {')
-  for id in graph:
-    group = str(type(idToObject[id]))
-    print('    "id": %s, "group": %s},' % (id, doubleQuote(group)))
-  print('  }')
-  print('  "links": {')
-  for id in graph:
-    for attribute, nextId in graph[id].items():
-      print('    "source": %s, "target": %s},' % (id, nextId))
-  print('  }')
-  print('}')
+  typeToGroup = {}
+  def getGroup(id):
+    idType = type(idToObject[id])
+    return typeToGroup.setdefault(idType, len(typeToGroup))
+
+  import json
+  print(json.dumps({
+    'nodes': [{
+        'id': id,
+        'group': getGroup(id),
+        'name': objectName(idToObject[id]),
+      } for id in idToObject],
+    'links': [{
+        'source': id,
+        'target': nextId,
+      } for id in graph for nextId in graph[id].values()],
+  }, indent=2))
 
 if __name__ == '__main__':
   root = None
