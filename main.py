@@ -10,8 +10,11 @@ dontFollowTypes = set([
 
 def getAttribute(obj, attribute):
   try:
+    # For some reason this is a static version of the __getattribute__ method and should work on
+    # objects that don't have __getattribute__.
     value = None.__class__.__getattribute__(obj, attribute)
   except AttributeError:
+    # For some reason __abstractmethods__ is listed in dir(type) but can't be accessed.
     if obj == type and attribute == '__abstractmethods__':
       return None, True
     raise
