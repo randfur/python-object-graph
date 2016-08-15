@@ -13,12 +13,12 @@ def getAttribute(obj, attribute):
     # For some reason this is a static version of the __getattribute__ method and should work on
     # objects that don't have __getattribute__.
     value = None.__class__.__getattribute__(obj, attribute)
-  except AttributeError:
+  except AttributeError as error:
     # For some reason __abstractmethods__ is listed in dir(type) but can't be accessed.
     if obj == type and attribute == '__abstractmethods__':
-      return None, True
+      return None, error
     raise
-  return value, False
+  return value, None
 
 def doubleQuote(string):
   return '"%s"' % string.replace('"', '\\"')
